@@ -10,6 +10,7 @@ struct functionAttributes
     std::string name;
     uint16_t start;
     uint16_t stop;
+    std::string content;
 };
 
 std::vector<functionAttributes> parseFileFunctions(const std::string &fileName)
@@ -27,6 +28,7 @@ std::vector<functionAttributes> parseFileFunctions(const std::string &fileName)
     int lineNumber = 0;
     bool inFunction = false;
     functionAttributes currentFunction;
+    std::string currentFunctionContent = "";
     int braceCount = 0;
 
     while (std::getline(file, line))
@@ -49,6 +51,7 @@ std::vector<functionAttributes> parseFileFunctions(const std::string &fileName)
 
         if (inFunction)
         {
+            currentFunctionContent.append(line);
             for (char ch : line)
             {
                 if (ch == '{')
@@ -61,7 +64,10 @@ std::vector<functionAttributes> parseFileFunctions(const std::string &fileName)
                     if (braceCount == 0)
                     {
                         currentFunction.stop = lineNumber;
+                        currentFunctionContent.erase(std::remove(currentFunctionContent.begin(), currentFunctionContent.end(), ' '), currentFunctionContent.end());
+                        currentFunction.content = currentFunctionContent;
                         functions.push_back(currentFunction);
+                        currentFunctionContent = "";
                         inFunction = false;
                         break;
                     }
@@ -86,7 +92,7 @@ int main(int argc, char const *argv[])
     std::vector<functionAttributes> functions = parseFileFunctions(filePath);
     for (const auto &function : functions)
     {
-        std::printf("name : %s\nstart : %u\nstop : %u\n\n", function.name.c_str(), function.start, function.stop);
+        std::printf("name : %s\nstart : %u\nstop : %u\n\n %s\n-----------------------------\n", function.name.c_str(), function.start, function.stop, function.content.c_str());
     }
 
     return 0;
